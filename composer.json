@@ -1,0 +1,34 @@
+{
+    "name": "laradic/idea",
+    "description": "Laravel 5 IntelliJ IDEA / PHPStorm helpers and improvements like Advanced Metadata generators (autocompletion), fixing settings, better code completion, improved package development, etc",
+    "homepage": "https://la.radic.nl",
+    "keywords": ["laravel", "laradic", "intellij", "idea", "phpstorm", "autocomplete", "repositories", "structure"],
+    "license": "MIT",
+    "authors": [
+        {"name": "Robin Radic", "homepage": "http://robin.radic.nl", "email": "robin@radic.nl", "role": "Developer"}
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "illuminate/support": "~5.0"
+    },
+    "require-dev": {
+        "laradic/testing": "~1.0",
+        "laradic/phing": "~1.0",
+        "orchestra/testbench": "~3.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Laradic\\Idea\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Laradic\\Tests\\Idea\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
