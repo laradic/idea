@@ -6,7 +6,7 @@
  */
 
 
-namespace Laradic\Idea\Metadata\Commands;
+namespace Laradic\Idea\Metadata;
 
 class Seeder extends \Illuminate\Database\Seeder
 {

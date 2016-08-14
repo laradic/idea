@@ -56,7 +56,7 @@ class MetaRepository extends Collection implements MetaRepositoryInterface
         $this->files     = $files;
         $this->generator = new StubGenerator();
 
-        parent::__construct(config('phpstorm-autocomplete.metas'));
+        parent::__construct(config('laradic.idea.metadata.metas'));
     }
 
     public function add($name, $class)
@@ -70,8 +70,8 @@ class MetaRepository extends Collection implements MetaRepositoryInterface
     public function create($path = null, $viewFile = null)
     {
         app()->register(Translation\TranslationServiceProvider::class);
-        $path     = is_null($path) ? config('phpstorm-autocomplete.output') : $path;
-        $viewFile = is_null($viewFile) ? config('phpstorm-autocomplete.view') : $viewFile;
+        $path     = is_null($path) ? config('laradic.idea.metadata.output') : $path;
+        $viewFile = is_null($viewFile) ? config('laradic.idea.metadata.view') : $viewFile;
 
         try {
             $metas = [ ];
