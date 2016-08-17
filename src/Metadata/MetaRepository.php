@@ -10,7 +10,6 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Collection;
 
 /**
  * This is the MetaRepository.
@@ -20,12 +19,10 @@ use Illuminate\Support\Collection;
  * @copyright      Copyright (c) 2015, Laradic
  * @license        https://tldrlegal.com/license/mit-license MIT License
  *
- *
- * @method Metas\BaseMeta[] all()
- * @method Metas\BaseMeta get($key, $default = null)
  */
-class MetaRepository extends Collection implements MetaRepositoryInterface
+class MetaRepository implements MetaRepositoryInterface
 {
+    protected $metas = [ ];
 
     protected $container;
 
@@ -56,28 +53,38 @@ class MetaRepository extends Collection implements MetaRepositoryInterface
         $this->files     = $files;
         $this->generator = new StubGenerator();
 
-        parent::__construct(config('laradic.idea.metadata.metas'));
+
     }
 
     public function add($name, $class)
     {
-        if (!class_exists($class)) {
+        if ( false === $this->exists($class) ) {
             throw new FileNotFoundException("Could not find class $class");
         }
-        $this->put($name, $class);
+        $this->metas[ $name ] = $class;
+    }
+
+    public function has($name)
+    {
+        return array_key_exists($name, $this->metas);
+    }
+
+    public function all()
+    {
+        return $this->metas;
     }
 
     public function create($path = null, $viewFile = null)
     {
         app()->register(Translation\TranslationServiceProvider::class);
-        $path     = is_null($path) ? config('laradic.idea.metadata.output') : $path;
-        $viewFile = is_null($viewFile) ? config('laradic.idea.metadata.view') : $viewFile;
+        $path     = null === $path ? config('laradic.idea.meta.output') : $path;
+        $viewFile = null === $viewFile ? config('laradic.idea.meta.view') : $viewFile;
 
         try {
             $metas = [ ];
 
-            foreach ($this->all() as $name => $class) {
-                if ( $this->exists($class) !== true || $class::canRun() === false) {
+            foreach ( $this->all() as $name => $class ) {
+                if ( $this->exists($class) !== true || $class::canRun() === false ) {
                     continue;
                 }
 
@@ -91,7 +98,8 @@ class MetaRepository extends Collection implements MetaRepositoryInterface
             $content = $this->views->make($viewFile, compact('open', 'metas'))->render();
 
             $this->files->put($path, $content);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             throw $e;
         }
     }
@@ -105,10 +113,10 @@ class MetaRepository extends Collection implements MetaRepositoryInterface
 
     protected function exists($class)
     {
-        $exists = false;
         try {
             $exists = class_exists($class);
-        } catch(\Exception $e){
+        }
+        catch (\Exception $e) {
             return false;
         }
         return $exists;

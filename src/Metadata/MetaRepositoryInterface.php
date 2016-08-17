@@ -18,5 +18,11 @@ interface MetaRepositoryInterface
 {
     public function add($name, $class);
 
+    /** @return boolean */
+    public function has($name);
+
+    /** @return array */
+    public function all();
+
     public function create($path = null, $viewFile = null);
 }

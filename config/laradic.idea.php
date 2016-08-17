@@ -7,7 +7,7 @@ return [
     'disable' => [], //['metadata', 'vcs', '...']
 
     // PHPStorm Advanced Metadata generation (.phpstorm.meta.php)
-    'metadata'       => [
+    'meta'    => [
         'enabled' => true,
         // relative to base_path
         'output' => '.phpstorm.meta.php',

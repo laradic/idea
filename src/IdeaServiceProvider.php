@@ -1,35 +1,37 @@
 <?php
 namespace Laradic\Idea;
 
-use Laradic\ServiceProvider\ServiceProvider;
+use Illuminate\Contracts\Foundation\Application;
+use Laradic\Idea\Metadata\MetaRepository;
+use Laradic\Support\ServiceProvider;
 
 class IdeaServiceProvider extends ServiceProvider
 {
-    protected $defer = true;
+    #protected $defer = true;
 
     protected $configFiles = [ 'laradic.idea' ];
 
-    protected $viewDirs = [ 'views' => 'idea' ];
-
-    protected $singletons = [
-        'idea.meta' => Metadata\MetaRepository::class,
-    ];
+    protected $viewDirs = [ 'views' => 'laradic-idea' ];
 
     protected $aliases = [
-        'idea.meta' => Metadata\MetaRepositoryInterface::class,
+        'laradic.idea.meta' => Metadata\MetaRepositoryInterface::class,
     ];
 
     protected $findCommands = [ 'Console' ];
 
-    // automatic generated provides()
-    public function boot()
-    {
-        return parent::boot();
-    }
-
     public function register()
     {
-        return parent::register();
+        $app = parent::register();
+
+        $app->singleton('laradic.idea.meta', function (Application $app) {
+            $repo = $app->build(MetaRepository::class);
+            foreach ( $app[ 'config' ]->get('laradic.idea.meta.metas', [ ]) as $name => $class ) {
+                $repo->add($name, $class);
+            }
+            return $repo;
+        });
+
+        return $app;
     }
 
 

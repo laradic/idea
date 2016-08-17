@@ -27,3 +27,31 @@ Documentation
 -------------
 
 Go to the [Laradic documentation](https://la.radic.nl)
+
+Quick overview
+--------------
+
+#### Advanced Metadata Generator
+<small>[View topic on PHPStorm documentation](https://confluence.jetbrains.com/display/PhpStorm/PhpStorm+Advanced+Metadata)</small>
+Similar to [barryvdh/laravel-ide-helper](#), `php artisan laradic:idea:meta` generates the **.phpstorm.meta.php** file inside your project root.
+This will autocomplete the bindings when calling `app('<binding>')` or `App::make('<binding>')` and will spawn the code-completion for the binding.
+
+SCREENSHOT
+
+The `laradic/idea` version also includes **config**, **routes** and **language** autocompletion. 
+It also provides an easy way to add your own completions. A good example would be "config":
+```php
+class ConfigMeta extends Laradic\Idea\Metadata\Metas\BaseMeta {
+    protected $methods = [
+        '\\config(\'\')',
+        '\\Config::get(\'\')',
+        'new \\Illuminate\\Contracts\\Config\\Repository',
+        '\\Illuminate\\Contracts\\Config\\Repository::get(\'\')'
+    ];
+
+    public function getData(){
+        return array_dot($this->app['config']->all());
+    }     
+}
+```
+

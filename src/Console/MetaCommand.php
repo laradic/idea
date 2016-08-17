@@ -8,12 +8,13 @@
 
 namespace Laradic\Idea\Console;
 
-use Illuminate\Console\Command;
+use Laradic\Console\Command;
+use Laradic\Idea\Metadata\MetaRepository;
 use Laradic\Idea\Metadata\Seeder;
 
 class MetaCommand extends Command
 {
-    protected $signature = 'idea:meta
+    protected $signature = 'laradic:idea:meta
                                      {--list : Lists all meta}
                                      {--exclude : Excludes meta}';
 
@@ -21,7 +22,15 @@ class MetaCommand extends Command
 
     public function handle()
     {
+        /** @var MetaRepository $metas */
+        $metas = app('laradic.idea.meta');
+        if ( $this->option('list') ) {
+            return $this->listing(array_values($metas->all()));
+        }
         app()->singleton('seeder', Seeder::class);
-        app('idea.meta')->create();
+
+        $metas->create();
+        $this->info('Created [.phpstorm.meta.php]');
+
     }
 }
