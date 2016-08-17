@@ -3,7 +3,7 @@ namespace Laradic\Idea;
 
 use Illuminate\Contracts\Foundation\Application;
 use Laradic\Idea\Metadata\MetaRepository;
-use Laradic\Support\ServiceProvider;
+use Laradic\ServiceProvider\ServiceProvider;
 
 class IdeaServiceProvider extends ServiceProvider
 {
