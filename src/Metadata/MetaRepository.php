@@ -83,6 +83,10 @@ class MetaRepository implements MetaRepositoryInterface
         try {
             $metas = [ ];
 
+            $__env = $this->views;
+
+
+
             foreach ( $this->all() as $name => $class ) {
                 if ( $this->exists($class) !== true || $class::canRun() === false ) {
                     continue;
@@ -91,7 +95,7 @@ class MetaRepository implements MetaRepositoryInterface
                 $meta    = $this->createMetaClass($class);
                 $methods = $meta->getMethods();
                 $data    = $meta->getData();
-                $metas[] = $this->generator->render($meta->getTemplate(), compact('methods', 'data'));
+                $metas[] = $this->generator->render($meta->getTemplate(), compact('methods', 'data', '__env'));
             }
 
             $open    = '<?php';
