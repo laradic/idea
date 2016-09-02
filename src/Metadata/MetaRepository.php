@@ -82,10 +82,7 @@ class MetaRepository implements MetaRepositoryInterface
 
         try {
             $metas = [ ];
-
             $__env = $this->views;
-
-
 
             foreach ( $this->all() as $name => $class ) {
                 if ( $this->exists($class) !== true || $class::canRun() === false ) {
