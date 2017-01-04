@@ -25,7 +25,7 @@ class IdeaServiceProvider extends ServiceProvider
 
         $app->singleton('laradic.idea.meta', function (Application $app) {
             $repo = $app->build(MetaRepository::class);
-            foreach ( $app[ 'config' ]->get('laradic.idea.meta.metas', [ ]) as $name => $class ) {
+            foreach ( $this->config->get('laradic.idea.meta.metas', [ ]) as $name => $class ) {
                 $repo->add($name, $class);
             }
             return $repo;
