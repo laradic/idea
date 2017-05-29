@@ -53,7 +53,7 @@ class Translator extends \Illuminate\Translation\Translator
     {
         $groups = [ ];
 
-        foreach ( array_unique($this->parseLocale($locale)) as $_locale ) {
+        foreach ( array_unique($this->localeArray($locale)) as $_locale ) {
             if ( $this->fs->isDirectory($path . DIRECTORY_SEPARATOR . $_locale) ) {
                 foreach ( $this->fs->allFiles($path . DIRECTORY_SEPARATOR . $_locale) as $file ) {
                     if ( $file->getExtension() === 'php' ) {

@@ -14,7 +14,7 @@ use Laradic\Idea\Metadata\Seeder;
 
 class MetaCommand extends Command
 {
-    protected $signature = 'laradic:idea:meta
+    protected $signature = 'idea:meta
                                      {--list : Lists all meta}
                                      {--exclude : Excludes meta}';
 
