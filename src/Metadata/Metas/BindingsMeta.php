@@ -1,8 +1,13 @@
 <?php
 /**
- * Part of the Laradic PHP packages.
+ * Part of the Laradic PHP Packages.
  *
- * MIT License and copyright information bundled with this package in the LICENSE file
+ * Copyright (c) 2017. Robin Radic.
+ *
+ * The license can be found in the package and online at https://laradic.mit-license.org.
+ *
+ * @copyright Copyright 2017 (c) Robin Radic
+ * @license https://laradic.mit-license.org The MIT License
  */
 namespace Laradic\Idea\Metadata\Metas;
 
@@ -14,7 +19,8 @@ namespace Laradic\Idea\Metadata\Metas;
  * @copyright      Copyright (c) 2015, Laradic
  * @license        https://tldrlegal.com/license/mit-license MIT License
  */
-class BindingsMeta extends BaseMeta implements CustomMetaInterface
+class
+BindingsMeta extends BaseMeta implements CustomMetaInterface
 {
     use CustomMetaTrait;
 
@@ -30,7 +36,7 @@ class BindingsMeta extends BaseMeta implements CustomMetaInterface
     {
         spl_autoload_register(function ($class) {
 
-            throw new \Exception("Class '$class' not found.");
+            //throw new \Exception("Class '$class' not found.");
         });
 
         $bindings             = static::getCustom();
@@ -43,7 +49,7 @@ class BindingsMeta extends BaseMeta implements CustomMetaInterface
                 if (is_object($concrete)) {
                     $bindings[ $abstract ] = get_class($concrete);
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 //throw $e;
             }
         }
@@ -61,7 +67,10 @@ class BindingsMeta extends BaseMeta implements CustomMetaInterface
         $bindings  = app()->getBindings();
         $abstracts = array_keys($bindings);
         $filtered  = array_except($abstracts, [ 'Illuminate\Database\Seeder' ]);
+        $filtered  = array_except($abstracts, static::$excludeClasses);
 
         return $filtered;
     }
+
+    public static $excludeClasses = [];
 }

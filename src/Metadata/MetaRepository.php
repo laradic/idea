@@ -1,9 +1,15 @@
 <?php
 /**
- * Part of the Laradic PHP packages.
+ * Part of the Laradic PHP Packages.
  *
- * MIT License and copyright information bundled with this package in the LICENSE file
+ * Copyright (c) 2017. Robin Radic.
+ *
+ * The license can be found in the package and online at https://laradic.mit-license.org.
+ *
+ * @copyright Copyright 2017 (c) Robin Radic
+ * @license https://laradic.mit-license.org The MIT License
  */
+
 namespace Laradic\Idea\Metadata;
 
 use Illuminate\Contracts\Container\Container;
@@ -22,7 +28,7 @@ use Illuminate\Filesystem\Filesystem;
  */
 class MetaRepository implements MetaRepositoryInterface
 {
-    protected $metas = [ ];
+    protected $metas = [];
 
     protected $container;
 
@@ -36,7 +42,13 @@ class MetaRepository implements MetaRepositoryInterface
      */
     protected $files;
 
+    /**
+     * @var \Laradic\Idea\Metadata\StubGenerator
+     */
     protected $generator;
+
+    /** @var boolean */
+    protected $ignoreExceptions = true;
 
     /**
      * MetaRepository constructor.
@@ -52,16 +64,23 @@ class MetaRepository implements MetaRepositoryInterface
         $this->views     = $views;
         $this->files     = $files;
         $this->generator = new StubGenerator();
-
-
     }
 
     public function add($name, $class)
     {
-        if ( false === $this->exists($class) ) {
+        if (false === $this->exists($class)) {
             throw new FileNotFoundException("Could not find class $class");
         }
         $this->metas[ $name ] = $class;
+        return $this;
+    }
+
+    public function remove($name)
+    {
+        if ($this->has($name)) {
+            unset($this->metas[ $name ]);
+        }
+        return $this;
     }
 
     public function has($name)
@@ -77,15 +96,15 @@ class MetaRepository implements MetaRepositoryInterface
     public function create($path = null, $viewFile = null)
     {
         app()->register(Translation\TranslationServiceProvider::class);
-        $path     = null === $path ? config('laradic.idea.meta.output') : $path;
+        $path     = base_path(null === $path ? config('laradic.idea.meta.output') : $path);
         $viewFile = null === $viewFile ? config('laradic.idea.meta.view') : $viewFile;
 
-        try {
-            $metas = [ ];
-            $__env = $this->views;
+        $metas = [];
+        $__env = $this->views;
 
-            foreach ( $this->all() as $name => $class ) {
-                if ( $this->exists($class) !== true || $class::canRun() === false ) {
+        foreach ($this->all() as $name => $class) {
+            try {
+                if ($this->exists($class) !== true || $class::canRun() === false) {
                     continue;
                 }
 
@@ -93,16 +112,21 @@ class MetaRepository implements MetaRepositoryInterface
                 $methods = $meta->getMethods();
                 $data    = $meta->getData();
                 $metas[] = $this->generator->render($meta->getTemplate(), compact('methods', 'data', '__env'));
+
+                $open    = '<?php';
+                $content = $this->views->make($viewFile, compact('open', 'metas'))->render();
+
+                $this->files->put($path, $content);
             }
-
-            $open    = '<?php';
-            $content = $this->views->make($viewFile, compact('open', 'metas'))->render();
-
-            $this->files->put($path, $content);
+            catch (\Exception $e) {
+                if ($this->ignoreExceptions) {
+                    continue;
+                }
+                throw $e;
+            }
         }
-        catch (\Exception $e) {
-            throw $e;
-        }
+
+        return $path;
     }
 
 
@@ -122,4 +146,27 @@ class MetaRepository implements MetaRepositoryInterface
         }
         return $exists;
     }
+
+    /**
+     * @return bool
+     */
+    public function isIgnoreExceptions(): bool
+    {
+        return $this->ignoreExceptions;
+    }
+
+    /**
+     * Set the ignoreExceptions value
+     *
+     * @param bool $ignoreExceptions
+     *
+     * @return MetaRepository
+     */
+    public function setIgnoreExceptions($ignoreExceptions)
+    {
+        $this->ignoreExceptions = $ignoreExceptions;
+        return $this;
+    }
+
+
 }

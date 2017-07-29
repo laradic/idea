@@ -1,8 +1,13 @@
 <?php
 /**
- * Part of the Laradic PHP packages.
+ * Part of the Laradic PHP Packages.
  *
- * MIT License and copyright information bundled with this package in the LICENSE file
+ * Copyright (c) 2017. Robin Radic.
+ *
+ * The license can be found in the package and online at https://laradic.mit-license.org.
+ *
+ * @copyright Copyright 2017 (c) Robin Radic
+ * @license https://laradic.mit-license.org The MIT License
  */
 namespace Laradic\Idea\Metadata\Metas;
 
@@ -23,8 +28,9 @@ abstract class BaseMeta implements MetaContract
 @foreach($methods as $method)
     {!! $method !!} => [
         '' == '@',
+        
         @foreach($data as $k => $v)
-            '{!! $k !!}' instanceof {!! \Laradic\Support\Str::ensureLeft(is_string($v) && class_exists($v, false) ? $v : 'null', '\\') !!},
+            '{!! $k !!}' instanceof {!! \Laradic\Support\Str::ensureLeft(is_string($v) && class_exists($v) ? $v : 'null', '\\') !!},
         @endforeach
     ],
 @endforeach
