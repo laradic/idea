@@ -8,12 +8,12 @@
         {"name": "Robin Radic", "homepage": "http://robin.radic.nl", "email": "robin@radic.nl", "role": "Developer"}
     ],
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=7.0.0",
         "illuminate/support": "~5.0",
         "laradic/service-provider": "~1.0"
     },
     "require-dev": {
-        "orchestra/testbench": "~3.4"
+        "orchestra/testing": "~3.5"
     },
     "autoload": {
         "psr-4": {
