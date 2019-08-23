@@ -10,6 +10,7 @@
     "require": {
         "php": ">=7.1.0",
         "illuminate/support": "~5.0",
+        "barryvdh/laravel-ide-helper": "^2.6",
         "laradic/support": "^2.0.0"
     },
     "autoload": {
@@ -25,6 +26,9 @@
     "extra": {
         "branch-alias": {
             "dev-develop": "2.1.x-dev"
+        },
+        "laravel": {
+            "dont-discover": ["*"]
         }
     }
 }

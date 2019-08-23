@@ -1,9 +1,8 @@
 <?php
 namespace Laradic\Idea;
 
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Foundation\Application;
-use Laradic\Idea\Metadata\MetaRepository;
-use Laradic\ServiceProvider\ServiceProvider;
 
 class IdeaServiceProvider extends ServiceProvider
 {
@@ -21,17 +20,12 @@ class IdeaServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $app = parent::register();
+        $this->mergeConfigFrom(__DIR__ . '/../config/laradic.idea.php', 'laradic.idea');
+    }
 
-        $app->singleton('laradic.idea.meta', function (Application $app) {
-            $repo = $app->build(MetaRepository::class);
-            foreach ( $this->config->get('laradic.idea.meta.metas', [ ]) as $name => $class ) {
-                $repo->add($name, $class);
-            }
-            return $repo;
-        });
-
-        return $app;
+    public function boot()
+    {
+        $this->publishes([__DIR__ . '/../config/laradic.idea.php'=>config_path('laradic/idea.php')]);
     }
 
 
