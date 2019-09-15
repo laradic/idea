@@ -11,8 +11,8 @@
          syntaxCheck="false"
 >
     <testsuites>
-        <testsuite name="Support Dependencies Suite">
-            <directory suffix=".php">./tests/</directory>
+        <testsuite name="Laradic Idea">
+            <directory suffix="Test.php">./tests/</directory>
         </testsuite>
     </testsuites>
 

@@ -1,4 +1,6 @@
-{!! $open !!}
+<?php
+// @formatter:off
+
 @if($blueprint)
 namespace Illuminate\Database\Schema {
 
