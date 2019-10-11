@@ -24,4 +24,7 @@ return [
             ],
         ],
     ],
+    'folders' => [
+        // globs
+    ]
 ];

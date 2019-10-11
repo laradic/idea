@@ -6,13 +6,13 @@ namespace Laradic\Idea;
 
 class GeneratedCompletion
 {
-    /** @var \Laradic\Generators\DocBlock\Result[] */
+    /** @var \Laradic\Generators\DocBlock\ProcessedClassDoc[] */
     protected $results;
 
     /**
      * GeneratedCompletion constructor.
      *
-     * @param \Laradic\Generators\DocBlock\Result[] $results
+     * @param \Laradic\Generators\DocBlock\ProcessedClassDoc[] $results
      */
     public function __construct(array $results)
     {
@@ -20,7 +20,7 @@ class GeneratedCompletion
     }
 
     /**
-     * @return \Illuminate\Support\Collection|\Laradic\Generators\DocBlock\Result[]
+     * @return \Illuminate\Support\Collection|\Laradic\Generators\DocBlock\ProcessedClassDoc[]
      */
     public function getResults()
     {
