@@ -22,6 +22,9 @@ return [
             Metas\ConfigMeta::class => [
                 'skip_lists' => true
             ],
+            Metas\ViewMeta::class => [
+                'exclude_namespaces' => ['root','storage']
+            ],
         ],
     ],
     'folders' => [
