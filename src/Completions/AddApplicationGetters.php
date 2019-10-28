@@ -34,9 +34,12 @@ class AddApplicationGetters implements CompletionInterface
                 return Str::ensureLeft($value, '\\');
             });
 
-        $class = $generator->class(Application::class);
+        $classes[] = $generator->class(\Illuminate\Contracts\Foundation\Application::class);
+        $classes[] = $generator->class(\Illuminate\Foundation\Application::class);
         foreach ($filtered as $name => $type) {
-            $class->ensureProperty($name, $type);
+            foreach($classes as $class) {
+                $class->ensureProperty($name, $type);
+            }
         }
 
         $next($generator);
