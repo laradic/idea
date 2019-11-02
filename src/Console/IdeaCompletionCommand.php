@@ -5,9 +5,9 @@ namespace Laradic\Idea\Console;
 
 
 use Illuminate\Console\Command;
-use Laradic\Idea\CompletionGenerator;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Laradic\Generators\Completion\CompletionGenerator;
 
 class IdeaCompletionCommand extends Command
 {

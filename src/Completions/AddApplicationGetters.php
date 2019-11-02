@@ -8,14 +8,14 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Laradic\Idea\Command\GetBindings;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Contracts\Foundation\Application;
 use Laradic\Generators\DocBlock\DocBlockGenerator;
+use Laradic\Generators\Completion\CompletionInterface;
 
 class AddApplicationGetters implements CompletionInterface
 {
     use DispatchesJobs;
 
-    public function generate(DocBlockGenerator $generator, $next)
+    public function generate(DocBlockGenerator $generator)
     {
         /** @var Collection $bindings */
         $bindings = $this->dispatchNow(new GetBindings());
@@ -42,6 +42,5 @@ class AddApplicationGetters implements CompletionInterface
             }
         }
 
-        $next($generator);
     }
 }

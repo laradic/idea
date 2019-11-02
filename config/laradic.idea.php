@@ -3,31 +3,33 @@
  * Check the documentation for a complete overview rundown!
  */
 
-use Laradic\Idea\Metas;
-use Laradic\Idea\Completions;
-
 return [
-    'completion' => [
+    'completion'  => [
         'view'        => 'laradic/idea::completion',
         'path'        => '.idea.completion.php',
         'completions' => [
-            Completions\AddApplicationGetters::class,
+            Laradic\Idea\Completions\AddApplicationGetters::class,
         ],
     ],
-    'meta'       => [
+    'completions' => [
+        'application' => [
+            Laradic\Idea\Completions\AddApplicationGetters::class,
+        ],
+    ],
+    'meta'        => [
         'integrate_ide_helper' => true,
         'view'                 => 'laradic/idea::meta',
         'path'                 => '.phpstorm.meta.php',
         'metas'                => [
-            Metas\ConfigMeta::class => [
-                'skip_lists' => true
+            Laradic\Idea\Metas\ConfigMeta::class => [
+                'skip_lists' => true,
             ],
-            Metas\ViewMeta::class => [
-                'exclude_namespaces' => ['root','storage']
+            Laradic\Idea\Metas\ViewMeta::class   => [
+                'exclude_namespaces' => [ 'root', 'storage' ],
             ],
         ],
     ],
-    'folders' => [
+    'folders'     => [
         // globs
-    ]
+    ],
 ];

@@ -22,5 +22,6 @@ class IdeaMetaCommand extends Command
         $generator->setView($config[ 'view' ]);
         $generator->generate($config[ 'path' ]);
         $this->line('done');
+
     }
 }
