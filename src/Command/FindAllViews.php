@@ -2,67 +2,67 @@
 
 namespace Laradic\Idea\Command;
 
+use Illuminate\Support\Str;
 use Illuminate\View\Factory;
 
 class FindAllViews
 {
-    protected $excludeNamespaces = [];
 
-    /** @var \Illuminate\Filesystem\Filesystem */
-    protected $fs;
+    /** @var array */
+    protected $excludeNamespaces = [ 'storage', 'root' ];
 
-    /** @var array|string[] */
-    protected $extensions;
-
-
-    public function __construct(array $excludeNamespaces = [])
+    public function __construct($excludeNamespaces = [])
     {
         $this->excludeNamespaces = $excludeNamespaces;
     }
 
-
     public function handle(Factory $factory)
     {
-        /** @var \Illuminate\View\FileViewFinder $finder */
-        $finder           = $factory->getFinder();
-        $this->fs         = $finder->getFilesystem();
-        $this->extensions = $finder->getExtensions();
-        $hints            = $finder->getHints();
-        $paths            = $finder->getPaths();
 
-        $views = [];
+        /** @var \Illuminate\View\FileViewFinder $finder */
+        $finder     = $factory->getFinder();
+        $fs         = $finder->getFilesystem();
+        $extensions = $finder->getExtensions();
+        $hints      = $finder->getHints();
+        $paths      = $finder->getPaths();
+
+        $views = collect();
         foreach ($hints as $namespace => $paths) {
             if (in_array($namespace, $this->excludeNamespaces, true)) {
                 continue;
             }
 
             foreach ($paths as $path) {
-                $viewsInPath = $this->getViewsInPath($path);
-                $viewsInPath = array_map(function ($view) use ($namespace) {
-                    return $namespace . '::' . $view;
-                }, $viewsInPath);
-                $views       = array_unique(array_merge($views, $viewsInPath));
+                if ( ! $fs->exists($path)) {
+                    continue;
+                }
+                $files = $fs->allFiles($path);
+                foreach ($files as $file) {
+                    if ( ! in_array($file->getExtension(), $extensions)) {
+                        continue;
+                    }
+                    $pathName = $file->getRelativePathname();
+                    $pathName = preg_replace('/\.blade.php$/', '', $pathName);
+                    $pathName = preg_replace('/\.' . preg_quote($file->getExtension(), '/') . '$/', '', $pathName);
+                    $view     = $namespace . '::' . $pathName;
+
+                    $type = $file->getExtension();
+                    if (Str::endsWith($file->getPathname(), '.blade.php')) {
+                        $type = 'blade';
+                    }
+                    $views->push([
+                        'view'         => $view,
+                        'namespace'    => $namespace,
+                        'file'         => $file,
+                        'path'         => $file->getPathname(),
+                        'relativePath' => path_make_relative($file->getPathname(), base_path()),
+                        'directory'    => $path,
+                        'pathName'     => $pathName,
+                        'type'         => $type,
+                    ]);
+                }
             }
         }
         return $views;
     }
-
-    protected function getViewsInPath($path)
-    {
-        $views = [];
-        if ( ! $this->fs->exists($path)) {
-            return $views;
-        }
-        $files = $this->fs->allFiles($path);
-        foreach ($files as $file) {
-            if (in_array($file->getExtension(), $this->extensions)) {
-                $pathName = $file->getRelativePathname();
-                $path     = $file->getRelativePath();
-                $pathName = preg_replace('/\.' . preg_quote($file->getExtension(), '/') . '$/', '', $pathName);
-                $views[]  = $pathName;
-            }
-        }
-        return $views;
-    }
-
 }

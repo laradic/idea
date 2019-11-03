@@ -20,7 +20,7 @@ class Metadata extends Dot
 
     public function saveTo($path)
     {
-        file_put_contents($path, json_encode($this->items));
+        file_put_contents($path, json_encode($this->items, JSON_UNESCAPED_SLASHES));
         return $this;
     }
 

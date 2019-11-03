@@ -30,6 +30,7 @@ class ViewMeta implements MetaInterface
     {
         $this->options = $options;
         $views         = $this->dispatchNow(new FindAllViews($options->get('exclude_namespaces', [])));
+        $views = $views->pluck('view')->toArray();
         $arguments     = implode("', '", $views);
         $this->line("registerArgumentsSet('views', '{$arguments}');");
         $this->line("
