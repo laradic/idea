@@ -7,7 +7,7 @@ use Illuminate\Filesystem\Filesystem;
 use Laradic\Idea\Command\FindAllViews;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
-class GenerateViewsMetadata
+class GenerateToolboxViews
 {
     use DispatchesJobs;
     protected $path;
@@ -47,9 +47,9 @@ class GenerateViewsMetadata
             'provider'   => 'laravel_views',
             'language'   => 'php',
             'signature'  => [
-                "view",
-                "view:1",
-                "Illuminate\\View\\Factory::make",
+                'view',
+                'view:1',
+                'Illuminate\View\Factory::make',
             ]
         ]);
         $meta->save();

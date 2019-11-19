@@ -3,6 +3,7 @@
 namespace Laradic\Idea\PhpToolbox;
 
 use Laradic\Support\Dot;
+use Illuminate\Filesystem\Filesystem;
 
 class Metadata extends Dot
 {
@@ -20,7 +21,9 @@ class Metadata extends Dot
 
     public function saveTo($path)
     {
-        file_put_contents($path, json_encode($this->items, JSON_UNESCAPED_SLASHES));
+        with(new Filesystem())->ensureDirectory(dirname($path));
+        $json=json_encode($this->items, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+        file_put_contents($path, $json);
         return $this;
     }
 
