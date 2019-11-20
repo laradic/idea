@@ -6,9 +6,11 @@ namespace Laradic\Idea\Metas;
 
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class ConfigMeta implements MetaInterface
 {
+
     protected $lines = [];
     /** @var Repository */
     protected $config;
