@@ -32,4 +32,7 @@ return [
     'folders'     => [
         // globs
     ],
+    'toolbox' => [
+        'path' => base_path('php-toolbox')
+    ]
 ];

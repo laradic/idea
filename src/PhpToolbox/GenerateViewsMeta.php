@@ -7,7 +7,7 @@ use Illuminate\Filesystem\Filesystem;
 use Laradic\Idea\Command\FindAllViews;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
-class GenerateToolboxViews
+class GenerateViewsMeta
 {
     use DispatchesJobs;
     protected $path;
@@ -20,7 +20,7 @@ class GenerateToolboxViews
     public function __construct($path = null)
     {
         if ($path === null) {
-            $path = base_path('php-toolbox/views/.ide-toolbox.metadata.json');
+            $path = path_join(config('laradic.idea.toolbox.path'), 'laravel/views/.ide-toolbox.metadata.json');
         }
         $this->path = $path;
     }
@@ -44,13 +44,13 @@ class GenerateToolboxViews
             })->toArray(),
         ]);
         $meta->push('registrar', [
-            'provider'   => 'laravel_views',
-            'language'   => 'php',
-            'signature'  => [
+            'provider'  => 'laravel_views',
+            'language'  => 'php',
+            'signature' => [
                 'view',
                 'view:1',
                 'Illuminate\View\Factory::make',
-            ]
+            ],
         ]);
         $meta->save();
         return;
