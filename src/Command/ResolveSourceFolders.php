@@ -4,6 +4,8 @@
 namespace Laradic\Idea\Command;
 
 
+use Laradic\Support\FS;
+use Laradic\Support\Dot;
 use Laradic\Support\Wrap;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
@@ -34,6 +36,8 @@ class ResolveSourceFolders
                 'packagePath'          => dirname($path),
                 'relativeComposerPath' => Str::removeLeft($path, base_path('/')),
                 'relativePackagePath'  => Str::removeLeft(dirname($path), base_path('/')),
+                'packageJsonPath'      => path_join(dirname($path), 'package.json'),
+                'viewsPath'            => path_join(dirname($path), 'resources/views'),
             ];
         });
     }
@@ -52,6 +56,19 @@ class ResolveSourceFolders
             }
             foreach ($c->get('autoload-dev.psr-4', []) as $prefix => $directory) {
                 $this->addFolder(path_join($package[ 'packagePath' ], $directory), $prefix, true, $package);
+            }
+
+
+            if (FS::exists($package[ 'packageJsonPath' ])) {
+                $pkg = Dot::wrap(json_decode(file_get_contents($package[ 'packageJsonPath' ]), true));
+                $pkgName = str_replace('/','\\',$pkg[ 'name' ]);
+                if ($pkg->has('pyro')) {
+                    $this->addFolder(path_join($package[ 'packagePath' ], $pkg[ 'pyro.srcPath' ]), $pkgName, false, $package);
+                }
+
+                if (FS::isDirectory($package[ 'viewsPath' ])) {
+                    $this->addFolder($package[ 'viewsPath' ], $pkgName . '.views', false, $package);
+                }
             }
         }
 

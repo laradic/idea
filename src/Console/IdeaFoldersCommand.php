@@ -16,7 +16,7 @@ class IdeaFoldersCommand extends Command
 {
     use DispatchesJobs;
 
-    protected $signature = 'idea:folders {patterns?*} {--php} {--vcs}';
+    protected $signature = 'idea:folders {patterns?*} {--php} {--vcs} {--no-tests}';
 
     public function handle()
     {
@@ -26,6 +26,11 @@ class IdeaFoldersCommand extends Command
         }
 
         $folders = collect($this->dispatchNow(new ResolveSourceFolders(Arr::wrap($patterns))));
+        if($this->option('no-tests')){
+            $folders = $folders->filter(function($folder){
+                return $folder['isTestSource'] === 'false';
+            });
+        }
         $this->addToProjectConfig($folders);
         if($this->option('vcs')) {
             $this->addToVCSConfig($folders);
@@ -38,7 +43,7 @@ class IdeaFoldersCommand extends Command
     protected function addToProjectConfig(Collection $folders)
     {
         $imlXml  = $folders->map(function ($folder) {
-            return "<sourceFolder url='{$folder['url']}' isTestSource='{$folder['isTestSource']}' packagePrefix='{$folder['packagePrefix']}' />";
+            return "<sourceFolder url=\"{$folder['url']}\" isTestSource=\"{$folder['isTestSource']}\" packagePrefix=\"{$folder['packagePrefix']}\" />";
         })->implode("\n");
         $this->line($imlXml);
     }
