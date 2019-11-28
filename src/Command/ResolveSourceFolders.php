@@ -84,7 +84,7 @@ class ResolveSourceFolders
         $path            = 'file://$MODULE_DIR$/' . $path;
         $this->folders[] = [
             'url'           => $path,
-            'packagePrefix' => $prefix,
+            'packagePrefix' => Str::startsWith($prefix, '@') ? $prefix : Str::ensureRight($prefix,'\\'),
             'isTestSource'  => $test ? 'true' : 'false',
             'package'       => $package,
         ];
