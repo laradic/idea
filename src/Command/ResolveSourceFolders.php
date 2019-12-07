@@ -4,14 +4,21 @@
 namespace Laradic\Idea\Command;
 
 
+use Closure;
 use Laradic\Support\FS;
 use Laradic\Support\Dot;
-use Laradic\Support\Wrap;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 
 class ResolveSourceFolders
 {
+    protected static $callbacks = [];
+
+    public static function extend(Closure $callback)
+    {
+        static::$callbacks[] = $callback;
+    }
+
     protected $patterns = [];
 
     public function __construct($patterns = [])
@@ -21,22 +28,38 @@ class ResolveSourceFolders
 
 
     /**
-     * @return \Illuminate\Support\Collection|array = [ $i => ['composer' => [], 'composerPath' => '', 'packagePath' => ''] ]
+     * @return \Illuminate\Support\Collection|array = [ $i => [
+     *     'composer' => new \Laradic\Support\Dot,
+     *     'composerPath' => '',
+     *     'packagePath' => '',
+     *     'hasPackageJson' => true,
+     *     'pkg' =>  new \Laradic\Support\Dot,
+     * ] ]
      */
-    protected function getComposerFiles()
+    protected function getMatches()
     {
         $composerFiles = [];
         foreach ($this->patterns as $pattern) {
             $composerFiles = array_merge($composerFiles, rglob($pattern));
         }
         return collect($composerFiles)->map(function ($path) {
+            $composer        = Dot::make(json_decode(file_get_contents($path), true));
+            $packageJsonPath = path_join(dirname($path), 'package.json');
+            $hasPackageJson  = file_exists($packageJsonPath);
+            /** @var \Laradic\Support\Dot $pkg */
+            $pkg = null;
+            if ($hasPackageJson) {
+                $pkg = Dot::make(json_decode(file_get_contents($packageJsonPath), true));
+            }
             return [
-                'composer'             => json_decode(file_get_contents($path), true),
+                'composer'             => $composer,
                 'composerPath'         => $path,
                 'packagePath'          => dirname($path),
                 'relativeComposerPath' => Str::removeLeft($path, base_path('/')),
                 'relativePackagePath'  => Str::removeLeft(dirname($path), base_path('/')),
-                'packageJsonPath'      => path_join(dirname($path), 'package.json'),
+                'packageJsonPath'      => $packageJsonPath,
+                'hasPackageJson'       => $hasPackageJson,
+                'pkg'                  => $pkg,
                 'viewsPath'            => path_join(dirname($path), 'resources/views'),
             ];
         });
@@ -49,27 +72,19 @@ class ResolveSourceFolders
 
     public function handle()
     {
-        foreach ($this->getComposerFiles() as $package) {
-            $c = Wrap::dot($package[ 'composer' ]);
-            foreach ($c->get('autoload.psr-4', []) as $prefix => $directory) {
-                $this->addFolder(path_join($package[ 'packagePath' ], $directory), $prefix, false, $package);
+        foreach ($this->getMatches() as $match) {
+
+            foreach ($match[ 'composer' ]->get('autoload.psr-4', []) as $prefix => $directory) {
+                $this->addFolder(path_join($match[ 'packagePath' ], $directory), $prefix, false, $match);
             }
-            foreach ($c->get('autoload-dev.psr-4', []) as $prefix => $directory) {
-                $this->addFolder(path_join($package[ 'packagePath' ], $directory), $prefix, true, $package);
+            foreach ($match[ 'composer' ]->get('autoload-dev.psr-4', []) as $prefix => $directory) {
+                $this->addFolder(path_join($match[ 'packagePath' ], $directory), $prefix, true, $match);
             }
 
-
-            if (FS::exists($package[ 'packageJsonPath' ])) {
-                $pkg = Dot::wrap(json_decode(file_get_contents($package[ 'packageJsonPath' ]), true));
-                $pkgName = str_replace('/','\\',$pkg[ 'name' ]);
-                if ($pkg->has('pyro')) {
-                    $this->addFolder(path_join($package[ 'packagePath' ], $pkg[ 'pyro.srcPath' ]), $pkgName, false, $package);
-                }
-
-                if (FS::isDirectory($package[ 'viewsPath' ])) {
-                    $this->addFolder($package[ 'viewsPath' ], $pkgName . '.views', false, $package);
-                }
+            foreach (static::$callbacks as $callback) {
+                $callback->call($this, $match);
             }
+
         }
 
         return $this->folders;
@@ -84,7 +99,7 @@ class ResolveSourceFolders
         $path            = 'file://$MODULE_DIR$/' . $path;
         $this->folders[] = [
             'url'           => $path,
-            'packagePrefix' => Str::startsWith($prefix, '@') ? $prefix : Str::ensureRight($prefix,'\\'),
+            'packagePrefix' => Str::startsWith($prefix, '@') ? $prefix : Str::ensureRight($prefix, '\\'),
             'isTestSource'  => $test ? 'true' : 'false',
             'package'       => $package,
         ];
