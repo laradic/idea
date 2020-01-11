@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Laradic\Idea\Console\IdeaMetaCommand;
 use Illuminate\Contracts\Config\Repository;
 use Laradic\Idea\Console\IdeaFoldersCommand;
+use Laradic\Idea\Console\IdeaToolboxCommand;
 use Laradic\Idea\Console\IdeaCompletionCommand;
 
 class IdeaServiceProvider extends ServiceProvider
@@ -17,6 +18,7 @@ class IdeaServiceProvider extends ServiceProvider
 
         $this->app->singleton('commands.laradic.idea.completion', IdeaCompletionCommand::class);
         $this->app->singleton('commands.laradic.idea.meta', IdeaMetaCommand::class);
+        $this->app->singleton('commands.laradic.idea.toolbox', IdeaToolboxCommand::class);
         $this->app->singleton('commands.laradic.idea.folders', IdeaFoldersCommand::class);
 
         $this->app->events->listen('laradic.idea.bindings', function (Collection $bindings) {
@@ -26,6 +28,7 @@ class IdeaServiceProvider extends ServiceProvider
         $this->commands([
             'commands.laradic.idea.completion',
             'commands.laradic.idea.meta',
+            'commands.laradic.idea.toolbox',
             'commands.laradic.idea.folders',
         ]);
     }
