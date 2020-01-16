@@ -2,47 +2,30 @@
 
 namespace Laradic\Idea\PhpToolbox;
 
-use Laradic\Support\FS;
+use PhpParser\Node;
+use ReflectionClass;
 use Illuminate\Support\Str;
+use PhpParser\ParserFactory;
+use PhpParser\NodeTraverser;
 use Illuminate\Support\Collection;
+use PhpParser\NodeVisitorAbstract;
 use Illuminate\Filesystem\Filesystem;
-use Symfony\Component\VarDumper\VarDumper;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Anomaly\Streams\Platform\Addon\AddonCollection;
 use Anomaly\Streams\Platform\Application\Application;
 
-/*
-
-"registrar":[
-        {
-            "provider": "pyro_config",
-            "language": "php",
-            "signatures": [
-                {
-                    "function": "route",
-                    "type": "type"
-                }
-            ],
-            "signature": [
-                "route",
-                "route:1"
-            ]
-        },
-"providers":[
-{
-            "name": "pyro_config",
-            "items":
- */
 
 class GenerateConfigMeta
 {
     use DispatchesJobs;
 
+    /** @var string */
     protected $path;
 
     /** @var array */
     protected $excludes;
+
 
     protected $data;
 
@@ -57,23 +40,63 @@ class GenerateConfigMeta
         $this->data     = new Collection();
     }
 
+    /**
+     * @return \ReflectionClass[]
+     */
+    protected function getServiceProviderClasses()
+    {
+        return collect(get_declared_classes())->filter(function ($class) {
+            return in_array(ServiceProvider::class, class_parents($class));
+        })->map(function ($class) {
+            return new ReflectionClass($class);
+        })->toArray();
+    }
+
     public function handle(Application $application, Filesystem $fs)
     {
-        foreach($fs->rglob(config_path('**')) as $result){
-            VarDumper::dump($result);
+        // gather all config files
+        /** @var array $configFiles = [ $i => ['namespace' => '', 'path' => ''] ] */
+        $configFiles = [];
+        $configFiles = array_merge($configFiles, $this->extractConfigFilesFromPath(config_path()));
+
+        foreach ($this->getServiceProviderClasses() as $class) {
+            $configFiles = array_merge($configFiles, $this->extractConfigFilesFromServiceProvider($class));
         }
 
-        return;
+        // transform config files to provider items
+        $providerItems = collect();
+        foreach ($configFiles as $configFile) {
+            $providerItems[] = $this->transformConfigFileToProviderItems($configFile);
+        }
+        $providerItems = $providerItems->flatten(1)->toArray();
 
-        // exclude
-        $this->data = $this->data->filter(function ($item) {
-            foreach ($this->excludes as $exclude) {
-                if (Str::is($exclude, $item[ 'lookup_string' ])) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        // create the metadata json file
+        $md = $this->createMetadata($providerItems);
+        $md->save();
+    }
+
+    protected function transformConfigFileToProviderItems($config)
+    {
+        $relativePath = path_make_relative($config[ 'path' ], base_path());
+        $data         = require $config[ 'path' ];
+        $resolved     = array_merge([
+            $config[ 'namespace' ] => [ 'key' => $config[ 'namespace' ], 'type' => 'file', 'value' => $data ],
+        ], $this->resolveConfig($data, $config[ 'namespace' ]));
+        return $this->resolvedToItems($resolved, $relativePath);
+    }
+
+    protected function extractConfigFilesFromPath($directory)
+    {
+        $configs = [];
+        foreach (rglob(path_join($directory, '**')) as $path) {
+            $namespace = path_get_filename_without_extension($path);
+            $configs[] = compact('path', 'namespace');
+        }
+        return $configs;
+    }
+
+    protected function createMetadata($providerItems)
+    {
 
         $signature = function ($method) {
             return [
@@ -86,7 +109,7 @@ class GenerateConfigMeta
         $md->merge([
             'registrar' => [
                 [
-                    'provider'   => 'pyro_config',
+                    'provider'   => 'laravel_config',
                     'language'   => 'php',
                     'signatures' => [
                         $signature('get'),
@@ -107,97 +130,109 @@ class GenerateConfigMeta
             ],
             'providers' => [
                 [
-                    'name'  => 'pyro_config',
-                    'items' => $this->data->values()->toArray(),
+                    'name'  => 'laravel_config',
+                    'items' => $providerItems,
                 ],
             ],
         ]);
-        $md->save();
+        return $md;
     }
 
-    protected function getNamespacedConfigInfo(string $prefix, array $searchPaths)
+    protected function extractConfigFilesFromServiceProvider(ReflectionClass $class)
     {
-        $found = [];
-        foreach ($searchPaths as $i => $path) {
-            $files   = array_unique(FS::rglob(path_join($path, '**/*.php')));
-            $files   = array_map(function ($configFile) use ($path) {
-                return path_make_relative($configFile, $path);
-            }, $files);
-            $found[] = compact('path', 'files');
-        }
-
-        $found = collect($searchPaths)->map(function ($path) {
-            $files = collect(FS::rglob(path_join($path, '**/*.php')))
-                ->unique()
-                ->map(function ($configFile) use ($path) {
-                    return path_make_relative($configFile, $path);
-                })
-                ->toArray();
-            return compact('path', 'files');
-        });
-
-        $infos = [];
-        foreach ($found as $item) {
-            $path = $item[ 'path' ];
-            foreach ($item[ 'files' ] as $file) {
-                $infos[ $file ] = compact('file', 'path');
-            }
-        }
-        unset($item, $path, $file);
-
-        foreach ($infos as &$info) {
-            $segments   = explode('/', $info[ 'file' ]);
-            $segments[] = path_get_filename_without_extension(array_pop($segments));
-            $resolved   = $this->resolveConfig(require path_join($info[ 'path' ], $info[ 'file' ]), $prefix . implode('.', $segments));
-            $slug       = $prefix;
-            foreach ($segments as $i => $segment) {
-                $slug              .= ($i === 0 ? $segment : '.' . $segment);
-                $resolved[ $slug ] = [
-                    'type'  => $i === 0 ? 'file' : 'array',
-                    'key'   => $slug,
-                    'value' => [],
-                ];
-            }
-            $info[ 'resolved' ] = $resolved;
-        }
-
-        $items = [];
-        foreach ($infos as $info) {
-            $path          = path_join($info[ 'path' ], $info[ 'file' ]);
-            $reslativePath = path_make_relative($path, base_path());
-            foreach ($info[ 'resolved' ] as $resolved) {
-                $isFile = $resolved[ 'type' ] === 'file';
-                if ($isFile) {
-                    $resolved[ 'type' ] = 'array';
+        $configs      = [];
+        $filePath     = $class->getFileName();
+        $dirPath      = dirname($filePath);
+        $composerPath = null;
+        while ($composerPath === null) {
+            if (file_exists($currentPath = path_join($dirPath, 'composer.json'))) {
+                $composerPath = $currentPath;
+            } else {
+                $dirPath = dirname($dirPath);
+                if ($dirPath === base_path()) {
+                    $composerPath = false;
                 }
-                $item = [
-                    'lookup_string' => $resolved[ 'key' ],
-                    'type_text'     => $resolved[ 'type' ],
-                    'icon'          => 'com.jetbrains.php.PhpIcons.',
-                    'target'        => 'file:///' . $reslativePath,
-                ];
-                if ($isFile) {
-                    $item[ 'icon' ]      .= 'PHP_FILE';
-                    $item[ 'tail_text' ] = ' file';
-                } elseif ($resolved[ 'type' ] === 'array') {
-                    $item[ 'icon' ]      .= 'FUNCTION';
-                    $item[ 'tail_text' ] = ' => [...]';
-                } else {
-                    $item[ 'icon' ] .= 'VARIABLE';
-                    if ($resolved[ 'type' ] === 'bool') {
-                        $item[ 'tail_text' ] = ' => ' . ($resolved[ 'value' ] === true ? 'true' : 'false');
-                    } elseif ($resolved[ 'type' ] === 'int') {
-                        $item[ 'tail_text' ] = ' => ' . $resolved[ 'value' ];
-                    } elseif ($resolved[ 'type' ] === 'string') {
-                        $item[ 'tail_text' ] = ' => \'' . Str::truncate($resolved[ 'value' ], 40, '..') . '\'';
+            }
+        }
+        if ($composerPath !== false) {
+            $paths = array_unique(array_merge(
+                rglob(path_join(dirname($composerPath), '**', 'config.php')),
+                rglob(path_join(dirname($composerPath), '**', 'config', '*.php'))
+            ));
+            if (count($paths) > 0) {
+                $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+                $parsed = $parser->parse(file_get_contents($filePath));
+
+                $traverser = new NodeTraverser();
+                $traverser->addVisitor($visitor = new class extends NodeVisitorAbstract {
+                    public $configs = [];
+
+                    public function enterNode(Node $node)
+                    {
+                        if (isset($node->name, $node->name->name) && $node instanceof Node\Expr\MethodCall && $node->name->name === 'mergeConfigFrom') {
+                            if (
+                                $node->args[ 0 ] instanceof Node\Arg
+                                && $node->args[ 0 ]->value instanceof Node\Expr\BinaryOp\Concat
+                                && $node->args[ 0 ]->value->right instanceof Node\Scalar\String_
+                                && $node->args[ 1 ] instanceof Node\Arg
+                                && $node->args[ 1 ]->value instanceof Node\Scalar\String_
+                            ) {
+
+                                $path            = $node->args[ 0 ]->value->right->value;
+                                $namespace       = $node->args[ 1 ]->value->value;
+                                $this->configs[] = compact('path', 'namespace');
+                            }
+                        }
                     }
-                }
+                });
 
-                $items[ $item[ 'lookup_string' ] ] = $item;
+                $traverser->traverse($parsed);
+                foreach ($visitor->configs as $config) {
+                    $config[ 'path' ] = head(rglob(path_join(dirname($composerPath), '**', $config[ 'path' ])));
+                    if ( ! file_exists($config[ 'path' ])) {
+                        continue;
+                    }
+                    $configs[] = $config;
+                }
             }
         }
+        return array_filter($configs);
+    }
 
-        return array_values($items);
+    protected function resolvedToItems($resolves, $relativeConfigPath)
+    {
+        $items = [];
+        foreach ($resolves as $resolved) {
+            $isFile = $resolved[ 'type' ] === 'file';
+            if ($isFile) {
+                $resolved[ 'type' ] = 'array';
+            }
+            $item = [
+                'lookup_string' => $resolved[ 'key' ],
+                'type_text'     => $resolved[ 'type' ],
+                'icon'          => 'com.jetbrains.php.PhpIcons.',
+                'target'        => 'file:///' . $relativeConfigPath,
+            ];
+            if ($isFile) {
+                $item[ 'icon' ]      .= 'PHP_FILE';
+                $item[ 'tail_text' ] = ' file';
+            } elseif ($resolved[ 'type' ] === 'array') {
+                $item[ 'icon' ]      .= 'FUNCTION';
+                $item[ 'tail_text' ] = ' => [...]';
+            } else {
+                $item[ 'icon' ] .= 'VARIABLE';
+                if ($resolved[ 'type' ] === 'bool') {
+                    $item[ 'tail_text' ] = ' => ' . ($resolved[ 'value' ] === true ? 'true' : 'false');
+                } elseif ($resolved[ 'type' ] === 'int') {
+                    $item[ 'tail_text' ] = ' => ' . $resolved[ 'value' ];
+                } elseif ($resolved[ 'type' ] === 'string') {
+                    $item[ 'tail_text' ] = ' => \'' . Str::truncate($resolved[ 'value' ], 40, '..') . '\'';
+                }
+            }
+
+            $items[ $item[ 'lookup_string' ] ] = $item;
+        }
+        return $items;
     }
 
     protected function resolveConfig($config, $prefix = '')
