@@ -42,6 +42,9 @@ class IdeaServiceProvider extends ServiceProvider
             if ($this->app->config->has('ide-helper.meta_filename') && $this->app->config->get('ide-helper.meta_filename') === '.phpstorm.meta.php') {
                 $this->app->config->set('ide-helper.meta_filename', '.phpstorm.meta.php/ide-helper.meta.php');
             }
+            if ($this->app->config->has('ide-helper.include_factory_builders') ){
+                $this->app->config->set('ide-helper.include_factory_builders', true);
+            }
         }
 
         $fs       = $this->app->files;
