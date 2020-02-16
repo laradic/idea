@@ -44,12 +44,14 @@ class FindAllViews
                     $pathName = $file->getRelativePathname();
                     $pathName = preg_replace('/\.blade.php$/', '', $pathName);
                     $pathName = preg_replace('/\.' . preg_quote($file->getExtension(), '/') . '$/', '', $pathName);
-                    $view     = $namespace . '::' . $pathName;
 
                     $type = $file->getExtension();
                     if (Str::endsWith($file->getPathname(), '.blade.php')) {
-                        $type = 'blade';
+                        $type     = 'blade';
+                        $pathName = str_replace('/', '.', $pathName);
                     }
+                    $view = $namespace . '::' . $pathName;
+
                     $views->push([
                         'view'         => $view,
                         'namespace'    => $namespace,
