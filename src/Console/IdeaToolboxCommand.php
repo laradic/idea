@@ -22,5 +22,6 @@ class IdeaToolboxCommand extends Command
         dispatch_now(new GenerateViewsMeta());
         $this->line('  - Generating route completions...', null, 'v');
         dispatch_now(new GenerateRoutesMeta());
+        $this->info('Generated idea toolbox files');
     }
 }

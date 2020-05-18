@@ -23,6 +23,6 @@ class IdeaCompletionCommand extends Command
         $result = $generator->generate();
         $result->writeToCompletionFile($config[ 'path' ]);
 
-        $this->line('done');
+        $this->info('Generated idea completion file');
     }
 }

@@ -4,6 +4,7 @@
 namespace Laradic\Idea;
 
 
+use Illuminate\Events\Dispatcher;
 use Laradic\Idea\Metas\MetaOptions;
 use Laradic\Idea\Metas\MetaInterface;
 use Illuminate\Contracts\View\Factory;
@@ -18,9 +19,13 @@ class MetaGenerator
     /** @var \Illuminate\Contracts\View\Factory */
     protected $factory;
 
+    /** @var \Illuminate\Events\Dispatcher */
+    protected $events;
+
     public function __construct(Factory $factory)
     {
         $this->factory = $factory;
+        $this->events = new Dispatcher();
     }
 
     public function generate($path)
@@ -41,6 +46,7 @@ class MetaGenerator
             $rendered = $this->render([ 'meta' => $meta->generate($options) ]);
             $filePath = path_join($path, $meta->name() . '.meta.php');
             file_put_contents($filePath, $rendered);
+            $this->events->dispatch('generated', [$class,$filePath,$rendered,$options]);
         }
     }
 
@@ -71,6 +77,23 @@ class MetaGenerator
     public function setMetas($metas)
     {
         $this->metas = $metas;
+        return $this;
+    }
+
+    public function getEvents()
+    {
+        return $this->events;
+    }
+
+    public function setEvents($events)
+    {
+        $this->events = $events;
+        return $this;
+    }
+
+    public function on($event, $listener)
+    {
+        $this->events->listen($event, $listener);
         return $this;
     }
 }

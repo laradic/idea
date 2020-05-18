@@ -18,10 +18,12 @@ class IdeaMetaCommand extends Command
     public function handle(MetaGenerator $generator, Repository $repository)
     {
         $config = $repository->get('laradic.idea.meta');
+        $generator->on('generated', function ($class) {
+            $this->line("- Generated meta {$class}", null, 'v');
+        });
         $generator->setMetas($config[ 'metas' ]);
         $generator->setView($config[ 'view' ]);
         $generator->generate($config[ 'path' ]);
-        $this->line('done');
-
+        $this->info('Generated idea metas');
     }
 }
