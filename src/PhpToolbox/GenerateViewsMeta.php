@@ -5,55 +5,44 @@ namespace Laradic\Idea\PhpToolbox;
 use Illuminate\View\Factory;
 use Illuminate\Filesystem\Filesystem;
 use Laradic\Idea\Command\FindAllViews;
-use Illuminate\Foundation\Bus\DispatchesJobs;
 
-class GenerateViewsMeta
+class GenerateViewsMeta extends AbstractMetaGenerator
 {
-    use DispatchesJobs;
-    protected $path;
+
+    protected $directory = 'laravel/views';
+
     /** @var \Illuminate\Filesystem\Filesystem */
     protected $fs;
     /** @var array */
     protected $extensions;
     protected $excludeNamespaces = [ 'storage', 'root' ];
 
-    public function __construct($path = null)
-    {
-        if ($path === null) {
-            $path = path_join(config('laradic.idea.toolbox.path'), 'laravel/views/.ide-toolbox.metadata.json');
-        }
-        $this->path = $path;
-    }
-
     public function handle(Factory $factory, Filesystem $fs)
     {
-        $fs->ensureDirectory(path_get_directory($this->path));
-        $meta = Metadata::create($this->path);
-
         /** @var \Illuminate\Support\Collection $views */
-        $views = $this->dispatchNow(new FindAllViews([ 'root', 'storage' ]));
+        $views = dispatch_now(new FindAllViews([ 'root', 'storage' ]));
 
-        $meta->push('providers', [
-            'name'  => 'laravel_views',
-            'items' => $views->map(function ($view) {
-                return [
-                    'lookup_string' => $view[ 'view' ],
-                    'icon'          => $view[ 'type' ] === 'twig' ? 'icons.TwigIcons.TwigFileIcon' : 'de.espend.idea.laravel.LaravelIcons.LARAVEL',
-                    'target'        => "file://{$view[ 'relativePath' ]}",
-                ];
-            })->toArray(),
-        ]);
-        $meta->push('registrar', [
-            'provider'  => 'laravel_views',
-            'language'  => 'php',
-            'signature' => [
-                'view',
-                'view:1',
-                'Illuminate\View\Factory::make',
-            ],
-        ]);
-        $meta->save();
-        return;
+        $this->metadata()
+            ->push('providers', [
+                'name'  => 'laravel_views',
+                'items' => $views->map(function ($view) {
+                    return [
+                        'lookup_string' => $view[ 'view' ],
+                        'icon'          => $view[ 'type' ] === 'twig' ? 'icons.TwigIcons.TwigFileIcon' : 'de.espend.idea.laravel.LaravelIcons.LARAVEL',
+                        'target'        => "file://{$view[ 'relativePath' ]}",
+                    ];
+                })->toArray(),
+            ])
+            ->push('registrar', [
+                'provider'  => 'laravel_views',
+                'language'  => 'php',
+                'signature' => [
+                    'view',
+                    'view:1',
+                    'Illuminate\View\Factory::make',
+                ],
+            ])
+            ->save();
     }
 
     protected function getViewsInPath($path)
