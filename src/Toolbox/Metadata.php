@@ -1,6 +1,6 @@
 <?php
 
-namespace Laradic\Idea\PhpToolbox;
+namespace Laradic\Idea\Toolbox;
 
 use Laradic\Support\Dot;
 use Illuminate\Filesystem\Filesystem;

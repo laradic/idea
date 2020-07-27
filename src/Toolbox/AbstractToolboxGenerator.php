@@ -1,20 +1,21 @@
 <?php
 
-namespace Laradic\Idea\PhpToolbox;
+namespace Laradic\Idea\Toolbox;
 
-abstract class AbstractMetaGenerator
+abstract class AbstractToolboxGenerator implements ToolboxGenerator
 {
-    protected $directory; // = 'laravel/views'
+    public $directory; // = 'laravel/views'
 
-    protected $path;
+    public $path;
 
-    public function __construct()
-    {
-        $this->path = path_join(config('laradic.idea.toolbox.path'), $this->directory, '.ide-toolbox.metadata.json');
-    }
-
-    /** @var \Laradic\Idea\PhpToolbox\Metadata */
+    /** @var \Laradic\Idea\Toolbox\Metadata */
     protected $md;
+
+    public function generate($path)
+    {
+        $this->path = $path;
+        dispatch_now($this);
+    }
 
     public function metadata()
     {

@@ -1,22 +1,19 @@
 <?php
 
-namespace Laradic\Idea\PhpToolbox;
+namespace Laradic\Idea\Toolbox;
 
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
-use Illuminate\Filesystem\Filesystem;
 
-class GenerateRoutesMeta extends AbstractMetaGenerator
+class RoutesGenerator extends AbstractToolboxGenerator
 {
-    protected $directory = 'laravel/routes';
-
     /** @var \Illuminate\Filesystem\Filesystem */
     protected $fs;
 
     /** @var array */
-    protected $extensions;
+    public $extensions;
 
-    public function handle(Router $router, Filesystem $fs)
+    public function handle(Router $router)
     {
         $routes = collect($router->getRoutes())
             ->filter(function ($route) {

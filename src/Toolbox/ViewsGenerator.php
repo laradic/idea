@@ -1,26 +1,24 @@
 <?php
 
-namespace Laradic\Idea\PhpToolbox;
+namespace Laradic\Idea\Toolbox;
 
-use Illuminate\View\Factory;
-use Illuminate\Filesystem\Filesystem;
 use Laradic\Idea\Command\FindAllViews;
 
-class GenerateViewsMeta extends AbstractMetaGenerator
+class ViewsGenerator extends AbstractToolboxGenerator
 {
-
-    protected $directory = 'laravel/views';
-
     /** @var \Illuminate\Filesystem\Filesystem */
     protected $fs;
-    /** @var array */
-    protected $extensions;
-    protected $excludeNamespaces = [ 'storage', 'root' ];
 
-    public function handle(Factory $factory, Filesystem $fs)
+    /** @var array */
+    public $extensions;
+
+    /** @var array|string[] */
+    public $excludeNamespaces = [];
+
+    public function handle()
     {
         /** @var \Illuminate\Support\Collection $views */
-        $views = dispatch_now(new FindAllViews([ 'root', 'storage' ]));
+        $views = dispatch_now(new FindAllViews($this->excludeNamespaces));
 
         $this->metadata()
             ->push('providers', [

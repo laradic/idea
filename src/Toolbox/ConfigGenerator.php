@@ -1,6 +1,6 @@
 <?php /** @noinspection SlowArrayOperationsInLoopInspection */
 
-namespace Laradic\Idea\PhpToolbox;
+namespace Laradic\Idea\Toolbox;
 
 use PhpParser\Node;
 use ReflectionClass;
@@ -9,35 +9,20 @@ use PhpParser\ParserFactory;
 use PhpParser\NodeTraverser;
 use Illuminate\Support\Collection;
 use PhpParser\NodeVisitorAbstract;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Config\Repository;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Anomaly\Streams\Platform\Application\Application;
 
 
-class GenerateConfigMeta
+class ConfigGenerator extends AbstractToolboxGenerator
 {
-    use DispatchesJobs;
-
-    /** @var string */
-    protected $path;
-
     /** @var array */
     protected $excludes;
 
-
     protected $data;
 
-    public function __construct($path = null, array $excludes = [])
+    public function __construct(Collection $data)
     {
-        if ($path === null) {
-
-            $path = path_join(config('laradic.idea.toolbox.path'), 'laravel/config/.ide-toolbox.metadata.json');
-        }
-        $this->path     = $path;
-        $this->excludes = $excludes;
-        $this->data     = new Collection();
+        $this->data = $data;
     }
 
     /**
@@ -52,7 +37,7 @@ class GenerateConfigMeta
         })->toArray();
     }
 
-    public function handle(Application $application, Filesystem $fs)
+    public function handle()
     {
         // gather all config files
         /** @var array $configFiles = [ $i => ['namespace' => '', 'path' => ''] ] */
@@ -105,7 +90,7 @@ class GenerateConfigMeta
                 'type'   => 'type',
             ];
         };
-        $md        = Metadata::create($this->path);
+        $md        = $this->metadata();
         $md->merge([
             'registrar' => [
                 [

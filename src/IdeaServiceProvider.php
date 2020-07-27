@@ -9,6 +9,7 @@ use Illuminate\Contracts\Config\Repository;
 use Laradic\Idea\Console\IdeaFoldersCommand;
 use Laradic\Idea\Console\IdeaToolboxCommand;
 use Laradic\Idea\Console\IdeaCompletionCommand;
+use Laradic\Idea\Toolbox\ToolboxGeneratorRunner;
 
 class IdeaServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,10 @@ class IdeaServiceProvider extends ServiceProvider
 
         $this->app->events->listen('laradic.idea.bindings', function (Collection $bindings) {
             $bindings->put('config', Repository::class);
+        });
+
+        $this->app->bind(ToolboxGeneratorRunner::class, function () {
+            return new ToolboxGeneratorRunner(config('laradic.idea.toolbox.generators', []));
         });
 
         $this->commands([
@@ -42,7 +47,7 @@ class IdeaServiceProvider extends ServiceProvider
             if ($this->app->config->has('ide-helper.meta_filename') && $this->app->config->get('ide-helper.meta_filename') === '.phpstorm.meta.php') {
                 $this->app->config->set('ide-helper.meta_filename', '.phpstorm.meta.php/ide-helper.meta.php');
             }
-            if ($this->app->config->has('ide-helper.include_factory_builders') ){
+            if ($this->app->config->has('ide-helper.include_factory_builders')) {
                 $this->app->config->set('ide-helper.include_factory_builders', true);
             }
         }

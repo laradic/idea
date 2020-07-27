@@ -32,7 +32,19 @@ return [
     'folders'     => [
         // globs
     ],
-    'toolbox' => [
-        'path' => base_path('php-toolbox')
-    ]
+    'toolbox'     => [
+        'path'       => base_path('php-toolbox'),
+        'generators' => [
+            Laradic\Idea\Toolbox\ConfigGenerator::class => [
+                'directory' => 'laravel/config',
+            ],
+            Laradic\Idea\Toolbox\RoutesGenerator::class => [
+                'directory' => 'laravel/routes',
+            ],
+            Laradic\Idea\Toolbox\ViewsGenerator::class  => [
+                'directory'         => 'laravel/views',
+                'excludeNamespaces' => [ 'storage', 'root' ],
+            ],
+        ],
+    ],
 ];

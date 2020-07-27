@@ -3,9 +3,7 @@
 namespace Laradic\Idea\Console;
 
 use Illuminate\Console\Command;
-use Laradic\Idea\PhpToolbox\GenerateViewsMeta;
-use Laradic\Idea\PhpToolbox\GenerateConfigMeta;
-use Laradic\Idea\PhpToolbox\GenerateRoutesMeta;
+use Laradic\Idea\Toolbox\ToolboxGeneratorRunner;
 
 class IdeaToolboxCommand extends Command
 {
@@ -13,15 +11,14 @@ class IdeaToolboxCommand extends Command
 
     protected $description = 'config items, views etc';
 
-    public function handle()
+    public function handle(ToolboxGeneratorRunner $runner)
     {
+        $runner->before(function ($instance, $path) {
+            $this->line('  - Running toolbox generator  ' . get_class($instance), null, 'v');
+        });
 
-        $this->line('  - Generating config completions...', null, 'v');
-        dispatch_now(new GenerateConfigMeta());
-        $this->line('  - Generating view completions...', null, 'v');
-        dispatch_now(new GenerateViewsMeta());
-        $this->line('  - Generating route completions...', null, 'v');
-        dispatch_now(new GenerateRoutesMeta());
+        $runner->run();
+
         $this->info('Generated idea toolbox files');
     }
 }
