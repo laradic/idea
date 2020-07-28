@@ -12,7 +12,7 @@
         "illuminate/support": "^5.0|^6.0|^7.0|^8.0",
         "barryvdh/laravel-ide-helper": "^2.6",
         "laradic/support": "~2.0",
-        "laradic/generators": "~2.0",
+        "laradic/generators": "~2.1",
         "openlss/lib-array2xml": "~1.0"
     },
     "autoload": {
@@ -27,6 +27,7 @@
     },
     "extra": {
         "branch-alias": {
+            "dev-master": "2.2.x-dev",
             "dev-develop": "3.0.x-dev"
         },
         "laravel": {
