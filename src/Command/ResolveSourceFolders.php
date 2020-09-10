@@ -5,7 +5,6 @@ namespace Laradic\Idea\Command;
 
 
 use Closure;
-use Laradic\Support\FS;
 use Laradic\Support\Dot;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
@@ -84,13 +83,12 @@ class ResolveSourceFolders
             foreach (static::$callbacks as $callback) {
                 $callback->call($this, $match);
             }
-
         }
 
         return $this->folders;
     }
 
-    protected function addFolder(string $path, string $prefix, bool $test = false, ?array $package = null)
+    public function addFolder(string $path, string $prefix, bool $test = false, ?array $package = null)
     {
         if (path_is_absolute($path)) {
             $path = Str::removeLeft($path, base_path('/'));
