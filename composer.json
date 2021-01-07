@@ -5,7 +5,7 @@
     "homepage": "https://radic.io",
     "license": "MIT",
     "authors": [
-        {"name": "Robin Radic", "homepage": "https://radic.io", "email": "rradic@hotmail.com", "role": "Developer"}
+        {"name": "Robin Radic", "homepage": "https://radic.dev", "email": "rradic@hotmail.com", "role": "Developer"}
     ],
     "require": {
         "php": ">=7.1.0",
