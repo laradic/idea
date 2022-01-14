@@ -51,7 +51,9 @@ class ConfigGenerator extends AbstractToolboxGenerator
         // transform config files to provider items
         $providerItems = collect();
         foreach ($configFiles as $configFile) {
-            $providerItems[] = $this->transformConfigFileToProviderItems($configFile);
+            if(is_file($configFile[ 'path' ])){
+                $providerItems[] = $this->transformConfigFileToProviderItems($configFile[ 'path' ], $configFile[ 'namespace' ]);
+            }
         }
         $providerItems = $providerItems->flatten(1)->toArray();
 
@@ -60,13 +62,13 @@ class ConfigGenerator extends AbstractToolboxGenerator
         $md->save();
     }
 
-    protected function transformConfigFileToProviderItems($config)
+    protected function transformConfigFileToProviderItems($configPath, $namespace)
     {
-        $relativePath = path_make_relative($config[ 'path' ], base_path());
-        $data         = require $config[ 'path' ];
+        $data         = require $configPath;
+        $relativePath = path_make_relative($configPath, base_path());
         $resolved     = array_merge([
-            $config[ 'namespace' ] => [ 'key' => $config[ 'namespace' ], 'type' => 'file', 'value' => $data ],
-        ], $this->resolveConfig($data, $config[ 'namespace' ]));
+            $namespace => [ 'key' => $namespace, 'type' => 'file', 'value' => $data ],
+        ], $this->resolveConfig($data, $namespace));
         return $this->resolvedToItems($resolved, $relativePath);
     }
 

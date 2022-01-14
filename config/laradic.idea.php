@@ -8,7 +8,10 @@ return [
         'view'        => 'laradic/idea::completion',
         'path'        => '.idea.completion.php',
         'completions' => [
-            Laradic\Idea\Completions\AddApplicationGetters::class,
+            Laradic\Idea\Completions\AddApplicationGetters::class => [
+                'addToAppProperties' => true,
+                'propertySyntax'     => 'deep-assoc', // 'psalm'|'deep-assoc'
+            ],
         ],
     ],
     'completions' => [

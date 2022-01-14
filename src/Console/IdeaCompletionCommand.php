@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Laradic\Idea\Console;
-
 
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
@@ -13,13 +11,16 @@ class IdeaCompletionCommand extends Command
 {
     use DispatchesJobs;
 
-    protected $signature = 'idea:completion';
+    protected $signature = 'idea:completion {--array: Output the array docstring}';
 
     public function handle(CompletionGenerator $generator, Repository $repository)
     {
         $config = $repository->get('laradic.idea.completion');
 
-        $generator->append($config[ 'completions' ]);
+        foreach ($config[ 'completions' ] as $class => $cfg) {
+            $generator->append($this->laravel->make($class, ['config'=>$cfg]));
+        }
+
         $result = $generator->generate();
         $result->writeToCompletionFile($config[ 'path' ]);
 
