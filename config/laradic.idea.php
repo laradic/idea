@@ -14,11 +14,6 @@ return [
             ],
         ],
     ],
-    'completions' => [
-        'application' => [
-            Laradic\Idea\Completions\AddApplicationGetters::class,
-        ],
-    ],
     'meta'        => [
         'integrate_ide_helper' => true,
         'view'                 => 'laradic/idea::meta',
