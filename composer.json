@@ -9,9 +9,8 @@
     ],
     "require": {
         "php": ">=7.1.0",
-        "illuminate/support": "^5.0|^6.0|^7.0|^8.0",
         "barryvdh/laravel-ide-helper": "^2.6",
-        "laradic/support": "~2.2",
+        "laradic/support": "^3.0",
         "laradic/generators": "~2.3",
         "openlss/lib-array2xml": "~1.0"
     },
