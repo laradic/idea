@@ -11,6 +11,7 @@ return [
             Laradic\Idea\Completions\AddApplicationGetters::class => [
                 'addToAppProperties' => true,
                 'propertySyntax'     => 'deep-assoc', // 'psalm'|'deep-assoc'
+                'exclude' => []
             ],
         ],
     ],

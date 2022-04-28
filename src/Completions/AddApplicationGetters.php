@@ -27,13 +27,14 @@ class AddApplicationGetters implements CompletionInterface
         $this->config = array_replace_recursive([
             'addToAppProperties' => true,
             'propertySyntax'     => 'deep-assoc', // 'psalm'|'deep-assoc'
+            'exclude' => []
         ], $config);
     }
 
     public function generate(DocBlockGenerator $generator)
     {
         /** @var Collection $bindings */
-        $bindings = $this->dispatchNow(new GetBindings());
+        $bindings = GetBindings::call($this->config['exclude']);
 
         $filtered = $bindings
             ->filter(function ($value, $key) {

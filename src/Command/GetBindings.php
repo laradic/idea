@@ -1,11 +1,19 @@
 <?php
 
-
 namespace Laradic\Idea\Command;
 
+use Laradic\Support\Traits\CallableTrait;
 
+/**
+ * @method static \Illuminate\Support\Collection call(array $exclude = [])
+ */
 class GetBindings
 {
+    use CallableTrait;
+
+    public function __construct(protected array $exclude = [])
+    {
+    }
 
     /**
      * Execute the console command.
@@ -15,11 +23,12 @@ class GetBindings
     public function handle()
     {
         $this->registerClassAutoloadExceptions();
-
-        $bindings = [];
+        $this->exclude[] = 'validator';
+        $this->exclude[] = 'seeder';
+        $bindings  = [];
         foreach ($this->getAbstracts() as $abstract) {
             // Validator and seeder cause problems
-            if (in_array($abstract, [ 'validator', 'seeder' ])) {
+            if (in_array($abstract, $this->exclude)) {
                 continue;
             }
 
@@ -64,7 +73,7 @@ class GetBindings
     protected function registerClassAutoloadExceptions()
     {
         spl_autoload_register(function ($class) {
-            throw new \ReflectionException("Class '$class' not found.");
+//            throw new \ReflectionException("Class '$class' not found.");
         });
     }
 }
